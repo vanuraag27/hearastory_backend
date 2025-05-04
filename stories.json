@@ -1,0 +1,72 @@
+[
+  {
+    "type": "adventure",
+    "title": "The Island of Fire",
+    "content": "Captain Mira and her crew set sail for the Island of Fire, a volcanic land whispered about in sailor legends..."
+  },
+  {
+    "type": "adventure",
+    "title": "Journey Through the Crystal Caves",
+    "content": "Young explorer Leo ventured into the Crystal Caves of Aranvale, known for their shifting paths..."
+  },
+  {
+    "type": "funny",
+    "title": "The Chicken Who Ran for Mayor",
+    "content": "In a small town, a clever chicken named Clucky wandered into a political rally..."
+  },
+  {
+    "type": "funny",
+    "title": "Toothpaste Trouble",
+    "content": "Timmy tried to be helpful and squeezed an entire tube of toothpaste into the sink..."
+  },
+  {
+    "type": "mystery",
+    "title": "The Case of the Missing Clock",
+    "content": "Every night, Old Man Harris heard his grandfather clock tick—but one morning, it was gone..."
+  },
+  {
+    "type": "mystery",
+    "title": "Whispers in Room 9",
+    "content": "The hotel staff said Room 9 was always booked but never had guests..."
+  },
+  {
+    "type": "fantasy",
+    "title": "The Dragon Painter",
+    "content": "In a kingdom where colors vanished, a poor artist named Elira could paint creatures that came to life..."
+  },
+  {
+    "type": "fantasy",
+    "title": "The Forest of Echoes",
+    "content": "Prince Kael was lost in the Forest of Echoes, where trees whispered forgotten truths..."
+  },
+  {
+    "type": "horror",
+    "title": "The Dollmaker’s Curse",
+    "content": "In a quiet village, children vanished after visiting an old doll shop..."
+  },
+  {
+    "type": "horror",
+    "title": "Don’t Answer the Third Knock",
+    "content": "In the snowy hills, a cabin’s door knocked once… then twice… but the third knock never came..."
+  },
+  {
+    "type": "motivational",
+    "title": "The Climber's Promise",
+    "content": "Every day, Ravi trained to climb the Great Peak, despite being told he wasn’t strong enough..."
+  },
+  {
+    "type": "motivational",
+    "title": "Emma’s First Flight",
+    "content": "Emma dreamed of flying planes, but no one believed a girl from her village could be a pilot..."
+  },
+  {
+    "type": "moral",
+    "title": "The Greedy Farmer",
+    "content": "A farmer found a goose that laid golden eggs. But he grew greedy and wanted all the eggs at once..."
+  },
+  {
+    "type": "moral",
+    "title": "The Boy and the Nails",
+    "content": "A boy with a bad temper was told to hammer a nail in the fence every time he lost control..."
+  }
+]
