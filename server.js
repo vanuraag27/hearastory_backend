@@ -8,6 +8,7 @@ app.use(cors());
 app.use(bodyParser.json()); // for parsing application/json
 
 // In-memory story database
+const stories = require('./stories.json');
 const storyDatabase = {
   adventure: { en: [] },
   funny: { en: [] },
