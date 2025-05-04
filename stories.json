@@ -1,11 +1,14 @@
 [
   {
     "type": "adventure",
+    "en": [...],
+    "hi": [...]
     "title": "The Island of Fire",
     "content": "Captain Mira and her crew set sail for the Island of Fire, a volcanic land whispered about in sailor legends..."
   },
   {
     "type": "adventure",
+    
     "title": "Journey Through the Crystal Caves",
     "content": "Young explorer Leo ventured into the Crystal Caves of Aranvale, known for their shifting paths..."
   },
@@ -61,11 +64,15 @@
   },
   {
     "type": "moral",
+    "en": [...],
+    "hi": [...]
     "title": "The Greedy Farmer",
     "content": "A farmer found a goose that laid golden eggs. But he grew greedy and wanted all the eggs at once..."
   },
   {
     "type": "moral",
+    "en": [...],
+    "hi": [...]
     "title": "The Boy and the Nails",
     "content": "A boy with a bad temper was told to hammer a nail in the fence every time he lost control..."
   }
