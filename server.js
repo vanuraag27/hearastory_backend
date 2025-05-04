@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const fs = require('fs');
+const path = './stories.json';
 
 const app = express();
 const port = 3000;
@@ -8,9 +10,8 @@ const port = 3000;
 app.use(cors());
 app.use(bodyParser.json());
 
-// In-memory story database
-const stories = require('./stories.json');
-const storyDatabase = {
+// Load or initialize story database
+let storyDatabase = {
   adventure: { en: [] },
   funny: { en: [] },
   mystery: { en: [] },
@@ -19,6 +20,20 @@ const storyDatabase = {
   motivational: { en: [] },
   moral: { en: [] }
 };
+
+if (fs.existsSync(path)) {
+  try {
+    const data = fs.readFileSync(path, 'utf-8');
+    storyDatabase = JSON.parse(data);
+  } catch (err) {
+    console.error('Failed to load stories.json:', err.message);
+  }
+}
+
+// Helper: Save current state to stories.json
+function saveStories() {
+  fs.writeFileSync(path, JSON.stringify(storyDatabase, null, 2), 'utf-8');
+}
 
 // GET stories
 app.get('/api/stories', (req, res) => {
@@ -52,14 +67,16 @@ app.post('/api/stories', (req, res) => {
     storyDatabase[type][language] = [];
   }
 
-  // Prevent duplicate titles
   const exists = storyDatabase[type][language].some(s => s.title === title);
   if (exists) {
     return res.status(409).json({ message: 'Story with this title already exists' });
   }
 
-  storyDatabase[type][language].push({ title, content });
-  res.status(201).json({ message: 'Story added successfully', story: { title, content } });
+  const newStory = { title, content };
+  storyDatabase[type][language].push(newStory);
+  saveStories();
+
+  res.status(201).json({ message: 'Story added successfully', story: newStory });
 });
 
 // DELETE a story
@@ -81,6 +98,8 @@ app.delete('/api/stories', (req, res) => {
   }
 
   stories.splice(index, 1);
+  saveStories();
+
   res.json({ message: 'Story deleted successfully' });
 });
 
@@ -90,5 +109,5 @@ app.get('/', (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
+  console.log(`✅ Server running at http://localhost:${port}`);
 });
