@@ -1,41 +1,26 @@
-import express from 'express';
-import cors from 'cors';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
+const express = require('express');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const { v4: uuidv4 } = require('uuid'); // for unique IDs
 const app = express();
-const PORT = process.env.PORT || 3000;
+const port = 3000;
 
-// Needed to use __dirname in ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Middleware
 app.use(cors());
-app.use(express.json());
+app.use(bodyParser.json()); // for parsing application/json
 
-// Stories file path
-const storiesFile = path.join(__dirname, 'stories.json');
+// In-memory story database
+const stories = require('./stories.json');
+const storyDatabase = {
+  adventure: { en: [] },
+  funny: { en: [] },
+  mystery: { en: [] },
+  fantasy: { en: [] },
+  horror: { en: [] },
+  motivational: { en: [] },
+  moral: { en: [] }
+};
 
-// Load stories from file
-function loadStories() {
-  if (!fs.existsSync(storiesFile)) return [];
-  const data = fs.readFileSync(storiesFile, 'utf-8');
-  return JSON.parse(data);
-}
-
-// Save stories to file
-function saveStories(stories) {
-  fs.writeFileSync(storiesFile, JSON.stringify(stories, null, 2));
-}
-
-// Welcome route
-app.get('/', (req, res) => {
-  res.send('Welcome to HearAStory API!');
-});
-
-// Get stories by type and language
+// GET stories
 app.get('/api/stories', (req, res) => {
   const { type, language } = req.query;
 
@@ -43,54 +28,68 @@ app.get('/api/stories', (req, res) => {
     return res.status(400).json({ message: 'Type and language are required' });
   }
 
-  const stories = loadStories();
-  const filtered = stories.filter(
-    s => s.type === type && s.language === language
-  );
-
-  if (filtered.length === 0) {
-    return res.status(404).json({
-      message: `No stories found for type "${type}" in language "${language}"`
-    });
+  const stories = storyDatabase[type]?.[language] || [];
+  if (stories.length === 0) {
+    return res.status(404).json({ message: `No stories found for type "${type}" in language "${language}"` });
   }
 
-  res.json(filtered);
+  res.json(stories);
 });
 
-// Add a new story
+// POST to add a new story
 app.post('/api/stories', (req, res) => {
-  const { id, type, language, title, content } = req.body;
+  const { type, language = 'en', title, content } = req.body;
 
-  if (!id || !type || !language || !title || !content) {
-    return res.status(400).json({ message: 'All fields are required' });
+  if (!type || !title || !content) {
+    return res.status(400).json({ message: 'Type, title, and content are required' });
   }
 
-  const stories = loadStories();
-  if (stories.some(s => s.id === id)) {
-    return res.status(409).json({ message: 'Story with this ID already exists' });
+  if (!storyDatabase[type]) {
+    storyDatabase[type] = {};
   }
 
-  stories.push({ id, type, language, title, content });
-  saveStories(stories);
+  if (!storyDatabase[type][language]) {
+    storyDatabase[type][language] = [];
+  }
 
-  res.status(201).json({ message: 'Story added successfully' });
+  const newStory = {
+    id: uuidv4(),
+    title,
+    content
+  };
+
+  storyDatabase[type][language].push(newStory);
+
+  res.status(201).json({ message: 'Story added successfully', story: newStory });
 });
 
-// Delete a story by ID
+// DELETE a story by ID
 app.delete('/api/stories/:id', (req, res) => {
-  const storyId = req.params.id;
-  const stories = loadStories();
-  const updatedStories = stories.filter(story => story.id !== storyId);
+  const { id } = req.params;
+  let deleted = false;
 
-  if (stories.length === updatedStories.length) {
-    return res.status(404).json({ message: 'Story not found' });
+  for (const type in storyDatabase) {
+    for (const language in storyDatabase[type]) {
+      const index = storyDatabase[type][language].findIndex(story => story.id === id);
+      if (index !== -1) {
+        storyDatabase[type][language].splice(index, 1);
+        deleted = true;
+        return res.json({ message: `Story with ID "${id}" deleted successfully.` });
+      }
+    }
   }
 
-  saveStories(updatedStories);
-  res.json({ message: 'Story deleted successfully' });
+  if (!deleted) {
+    res.status(404).json({ message: `Story with ID "${id}" not found.` });
+  }
+});
+
+// Root welcome route
+app.get('/', (req, res) => {
+  res.send('Welcome to HearAStory API!');
 });
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+app.listen(port, () => {
+  console.log(`Server running on http://localhost:${port}`);
 });
