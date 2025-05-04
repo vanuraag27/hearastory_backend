@@ -1,25 +1,41 @@
-const express = require('express');
-const cors = require('cors');
-const bodyParser = require('body-parser');
+import express from 'express';
+import cors from 'cors';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
 const app = express();
-const port = 3000;
+const PORT = process.env.PORT || 3000;
 
+// Needed to use __dirname in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Middleware
 app.use(cors());
-app.use(bodyParser.json()); // for parsing application/json
+app.use(express.json());
 
-// In-memory story database
-const stories = require('./stories.json');
-const storyDatabase = {
-  adventure: { en: [] },
-  funny: { en: [] },
-  mystery: { en: [] },
-  fantasy: { en: [] },
-  horror: { en: [] },
-  motivational: { en: [] },
-  moral: { en: [] }
-};
+// Stories file path
+const storiesFile = path.join(__dirname, 'stories.json');
 
-// GET stories
+// Load stories from file
+function loadStories() {
+  if (!fs.existsSync(storiesFile)) return [];
+  const data = fs.readFileSync(storiesFile, 'utf-8');
+  return JSON.parse(data);
+}
+
+// Save stories to file
+function saveStories(stories) {
+  fs.writeFileSync(storiesFile, JSON.stringify(stories, null, 2));
+}
+
+// Welcome route
+app.get('/', (req, res) => {
+  res.send('Welcome to HearAStory API!');
+});
+
+// Get stories by type and language
 app.get('/api/stories', (req, res) => {
   const { type, language } = req.query;
 
@@ -27,39 +43,54 @@ app.get('/api/stories', (req, res) => {
     return res.status(400).json({ message: 'Type and language are required' });
   }
 
-  const stories = storyDatabase[type]?.[language] || [];
-  if (stories.length === 0) {
-    return res.status(404).json({ message: `No stories found for type "${type}" in language "${language}"` });
+  const stories = loadStories();
+  const filtered = stories.filter(
+    s => s.type === type && s.language === language
+  );
+
+  if (filtered.length === 0) {
+    return res.status(404).json({
+      message: `No stories found for type "${type}" in language "${language}"`
+    });
   }
 
-  res.json(stories);
+  res.json(filtered);
 });
 
-// POST to add a new story
+// Add a new story
 app.post('/api/stories', (req, res) => {
-  const { type, language = 'en', title, content } = req.body;
+  const { id, type, language, title, content } = req.body;
 
-  if (!type || !title || !content) {
-    return res.status(400).json({ message: 'Type, title, and content are required' });
+  if (!id || !type || !language || !title || !content) {
+    return res.status(400).json({ message: 'All fields are required' });
   }
 
-  if (!storyDatabase[type]) {
-    storyDatabase[type] = {};
+  const stories = loadStories();
+  if (stories.some(s => s.id === id)) {
+    return res.status(409).json({ message: 'Story with this ID already exists' });
   }
 
-  if (!storyDatabase[type][language]) {
-    storyDatabase[type][language] = [];
-  }
+  stories.push({ id, type, language, title, content });
+  saveStories(stories);
 
-  storyDatabase[type][language].push({ title, content });
-
-  res.status(201).json({ message: 'Story added successfully', story: { title, content } });
+  res.status(201).json({ message: 'Story added successfully' });
 });
 
-app.get('/', (req, res) => {
-  res.send('Welcome to HearAStory API!');
+// Delete a story by ID
+app.delete('/api/stories/:id', (req, res) => {
+  const storyId = req.params.id;
+  const stories = loadStories();
+  const updatedStories = stories.filter(story => story.id !== storyId);
+
+  if (stories.length === updatedStories.length) {
+    return res.status(404).json({ message: 'Story not found' });
+  }
+
+  saveStories(updatedStories);
+  res.json({ message: 'Story deleted successfully' });
 });
 
-app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
+// Start server
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });
