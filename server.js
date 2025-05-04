@@ -1,12 +1,12 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const { v4: uuidv4 } = require('uuid'); // for unique IDs
+
 const app = express();
 const port = 3000;
 
 app.use(cors());
-app.use(bodyParser.json()); // for parsing application/json
+app.use(bodyParser.json());
 
 // In-memory story database
 const stories = require('./stories.json');
@@ -52,44 +52,43 @@ app.post('/api/stories', (req, res) => {
     storyDatabase[type][language] = [];
   }
 
-  const newStory = {
-    id: uuidv4(),
-    title,
-    content
-  };
-
-  storyDatabase[type][language].push(newStory);
-
-  res.status(201).json({ message: 'Story added successfully', story: newStory });
-});
-
-// DELETE a story by ID
-app.delete('/api/stories/:id', (req, res) => {
-  const { id } = req.params;
-  let deleted = false;
-
-  for (const type in storyDatabase) {
-    for (const language in storyDatabase[type]) {
-      const index = storyDatabase[type][language].findIndex(story => story.id === id);
-      if (index !== -1) {
-        storyDatabase[type][language].splice(index, 1);
-        deleted = true;
-        return res.json({ message: `Story with ID "${id}" deleted successfully.` });
-      }
-    }
+  // Prevent duplicate titles
+  const exists = storyDatabase[type][language].some(s => s.title === title);
+  if (exists) {
+    return res.status(409).json({ message: 'Story with this title already exists' });
   }
 
-  if (!deleted) {
-    res.status(404).json({ message: `Story with ID "${id}" not found.` });
-  }
+  storyDatabase[type][language].push({ title, content });
+  res.status(201).json({ message: 'Story added successfully', story: { title, content } });
 });
 
-// Root welcome route
+// DELETE a story
+app.delete('/api/stories', (req, res) => {
+  const { type, language = 'en', title } = req.body;
+
+  if (!type || !title) {
+    return res.status(400).json({ message: 'Type and title are required to delete a story' });
+  }
+
+  const stories = storyDatabase[type]?.[language];
+  if (!stories) {
+    return res.status(404).json({ message: 'Story list not found' });
+  }
+
+  const index = stories.findIndex(story => story.title === title);
+  if (index === -1) {
+    return res.status(404).json({ message: 'Story not found' });
+  }
+
+  stories.splice(index, 1);
+  res.json({ message: 'Story deleted successfully' });
+});
+
+// Welcome route
 app.get('/', (req, res) => {
   res.send('Welcome to HearAStory API!');
 });
 
-// Start server
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
 });
