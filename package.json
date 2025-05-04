@@ -1,5 +1,5 @@
 {
-  "name": "storytelling-website",
+  "name": "hearastory_backend",
   "version": "1.0.0",
   "description": "A website for dynamic story fetching",
   "main": "server.js",
