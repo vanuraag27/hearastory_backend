@@ -11,7 +11,7 @@ app.use(bodyParser.json());
 // In-memory story database
 const stories = require('./stories.json');
 const storyDatabase = {
-  adventure: { en: [] },{ hi: [] }
+  adventure: { en: [] },
   funny: { en: [] },
   mystery: { en: [] },
   fantasy: { en: [] },
